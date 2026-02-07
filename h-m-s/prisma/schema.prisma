@@ -1,0 +1,105 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model Role {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+
+  users User[]
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+
+  roleId    Int
+  role      Role     @relation(fields: [roleId], references: [id])
+
+  patient   Patient?
+  doctor    Doctor?
+
+  isActive  Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Patient {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id])
+
+  dateOfBirth DateTime
+  gender      Gender
+  phone       String
+  address     String?
+
+  isActive    Boolean  @default(true)
+
+  appointments Appointment[]
+
+  createdAt DateTime @default(now())
+}
+
+model Doctor {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id])
+
+  departmentId   Int
+  department     Department @relation(fields: [departmentId], references: [id])
+
+  specialization String
+
+  isActive       Boolean  @default(true)
+
+  appointments   Appointment[]
+
+  createdAt DateTime @default(now())
+}
+
+model Department {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+
+  doctors Doctor[]
+}
+
+model Appointment {
+  id           String   @id @default(uuid())
+
+  patientId    String
+  doctorId     String
+
+  patient      Patient @relation(fields: [patientId], references: [id])
+  doctor       Doctor  @relation(fields: [doctorId], references: [id])
+
+  scheduledAt  DateTime
+  durationMin  Int
+  status       AppointmentStatus
+  notes        String?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+enum AppointmentStatus {
+  PENDING
+  APPROVED
+  COMPLETED
+  CANCELLED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
